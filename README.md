@@ -1,6 +1,6 @@
 # USSD Payment System
 
-This is a simple USSD payment system implemented using Node.js and Africa's Talking API.
+This is a USSD payment system implemented using Node.js and Africa's Talking API.
 
 ## Features
 
