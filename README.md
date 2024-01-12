@@ -1,95 +1,71 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const africastalking = require('africastalking');
-const helmet = require('helmet');
-const cors = require('cors');
-const rateLimit = require('express-rate-limit');
+# USSD Payment System
 
-const app = express();
-const port = process.env.PORT || 3000;
+This is a simple USSD payment system implemented using Node.js and Africa's Talking API.
 
-// Set up Africa's Talking credentials from environment variables
-const username = process.env.AT_USERNAME || 'default-username';
-const apiKey = process.env.AT_API_KEY || 'default-api-key';
+## Features
 
-const africastalkingOptions = {
-  apiKey,
-  username,
-};
+- Secure handling of USSD transactions
+- Integration with Africa's Talking Payment API
+- Transaction history for users
+- Environment variable usage for sensitive information
+- Security headers, CORS, and rate limiting for enhanced security
 
-const africastalkingInstance = africastalking(africastalkingOptions);
-const payments = africastalkingInstance.PAYMENTS;
+## Prerequisites
 
-// In-memory database for storing user transactions (replace with a database in production)
-const transactionsDatabase = [];
+- Node.js installed
+- Africa's Talking account with API key and username
+- Necessary environment variables set up (AT_USERNAME, AT_API_KEY)
 
-// Middleware for security headers
-app.use(helmet());
+## Installation
 
-// Middleware for handling CORS
-app.use(cors());
+1. Clone the repository:
 
-// Middleware to parse JSON requests
-app.use(bodyParser.json());
+    ```bash
+    git clone https://github.com/yourusername/ussd-payment-system.git
+    cd ussd-payment-system
+    ```
 
-// Rate limiting middleware
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-});
+2. Install dependencies:
 
-app.use(limiter);
+    ```bash
+    npm install
+    ```
 
-// Route to handle USSD payment
-app.post('/ussd-payment', (req, res) => {
-  const { sessionId, phoneNumber, text } = req.body;
+3. Set up environment variables:
 
-  // Parse the text received from the USSD service
-  const userInput = text.split('*');
+    Create a `.env` file in the root directory and add the following:
 
-  // Assuming that the last digit entered is the payment amount
-  const paymentAmount = parseFloat(userInput[userInput.length - 1]);
+    ```env
+    AT_USERNAME=your-africastalking-username
+    AT_API_KEY=your-africastalking-api-key
+    PORT=3000  # Optional, specify a different port if needed
+    ```
 
-  // Perform payment using Africa's Talking Payment API
-  payments.mobileCheckout({
-    productName: 'YourProduct',
-    phoneNumber,
-    currencyCode: 'USD', // Use the appropriate currency code
-    amount: paymentAmount,
-    metadata: {
-      custom_field: 'value',
-    },
-  }).then(response => {
-    console.log(response);
+4. Run the server:
 
-    // Save transaction details to the database
-    const transactionDetails = {
-      transactionId: response.transactionId,
-      phoneNumber,
-      amount: paymentAmount,
-      status: 'completed',
-      timestamp: new Date(),
-    };
-    transactionsDatabase.push(transactionDetails);
+    ```bash
+    npm start
+    ```
 
-    res.send('Payment successful');
-  }).catch(error => {
-    console.error(error);
-    res.send('Payment failed');
-  });
-});
+## Usage
 
-// Route to fetch transaction history
-app.get('/transaction-history/:phoneNumber', (req, res) => {
-  const phoneNumber = req.params.phoneNumber;
+- Access the USSD payment system via the defined endpoints.
+- Make USSD payments and view transaction history.
 
-  // Filter transactions for the given phone number
-  const userTransactions = transactionsDatabase.filter(transaction => transaction.phoneNumber === phoneNumber);
+## Endpoints
 
-  res.json(userTransactions);
-});
+- USSD Payment: `POST /ussd-payment`
+- Transaction History: `GET /transaction-history/:phoneNumber`
 
-// Start the server
-app.listen(port, () => {
-  console.log(Server is running at http://localhost:${port});
-});
+## Security Considerations
+
+- Use HTTPS for secure communication.
+- Keep environment variables secure and do not expose sensitive information.
+
+## Contributing
+
+Contributions are welcome! Please submit issues or pull requests.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
